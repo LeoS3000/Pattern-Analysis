@@ -1,67 +1,65 @@
-import matplotlib.pyplot as plt
 import torch
+import matplotlib.pyplot as plt
 
-# Device configuration
+# Device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # L-system rules
 axiom = "A"
 rule1 = "A-B--B+A++AA+B-"
 rule2 = "+A-BB--B-A++A+B"
-
-iterations = 4
+iterations = 8
 
 # Initial coordinates
 coordinates = torch.tensor([[0.0, -1.0], [0.0, 0.0]], device=device)
 
 for _ in range(iterations):
-    # Expand the axiom
-    substr = ""
+    # --- Expand axiom in parallel ---
+    substr = []
     for k in axiom:
         if k == "A":
-            substr += rule1
+            substr.append(rule1)
         elif k == "B":
-            substr += rule2
+            substr.append(rule2)
         else:
-            substr += k
+            substr.append(k)
+    substr = ''.join(substr)
 
-    stack = []
-    count = 0
+    # --- Convert characters to ASCII tensor for parallel processing ---
+    substr_tensor = torch.tensor([ord(c) for c in substr], device=device)
 
-    for i in substr:
-        if i == "+":
-            stack.append(60.0)
-        elif i == "-":
-            stack.append(-60.0)
-        elif i in "AB":
-            if count != 0:
-                # Sum angles in stack
-                angle = torch.tensor(sum(stack), device=device)
-                stack = []
+    # --- Parallel angle assignment ---
+    angles = torch.zeros(len(substr), device=device)
+    angles[substr_tensor == ord('+')] = 60.0
+    angles[substr_tensor == ord('-')] = -60.0
+    # Others remain 0
 
-                # Convert degrees to radians manually
-                theta = angle * (torch.pi / 180)
+    # --- Cumulative rotation in radians ---
+    theta = torch.cumsum(angles, dim=0) * (torch.pi / 180)
 
-                # Rotation matrix
-                R = torch.tensor([[torch.cos(theta), -torch.sin(theta)],
-                                  [torch.sin(theta),  torch.cos(theta)]], device=device)
+    # --- Direction mask for A/B symbols ---
+    directions = ((substr_tensor == ord('A')) | (substr_tensor == ord('B'))).float()
 
-                # Compute line vector
-                line = coordinates[-1] - coordinates[-2]
+    # --- Unit vectors for all symbols ---
+    unit_vectors = torch.stack([torch.cos(theta), torch.sin(theta)], dim=1) * directions.unsqueeze(1)
 
-                # Rotate line
-                vector = R @ line
+    # --- Compute displacements ---
+    last_vector = coordinates[-1] - coordinates[-2]
+    displacement_norm = torch.norm(last_vector)
+    displacements = unit_vectors * displacement_norm
 
-                # Append new coordinate
-                new_point = coordinates[-1] + vector
-                coordinates = torch.cat([coordinates, new_point.unsqueeze(0)], dim=0)
+    # Only keep displacements where directions == 1
+    displacements = displacements[directions == 1]
 
-            count += 1
+    # --- Append new coordinates ---
+    if len(displacements) > 0:
+        coordinates = torch.cat([coordinates, torch.cumsum(displacements, dim=0) + coordinates[-1]], dim=0)
 
+    # --- Update axiom for next iteration ---
     axiom = substr
 
-# Move coordinates back to CPU for plotting
+# --- Move to CPU and plot ---
 coords_cpu = coordinates.cpu()
-plt.plot(coords_cpu[:, 0], coords_cpu[:, 1], c="black")
+plt.plot(coords_cpu[:, 0], coords_cpu[:, 1], c="black", linewidth=0.2)
 plt.axis("equal")
 plt.show()

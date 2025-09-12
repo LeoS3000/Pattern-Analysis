@@ -1,1 +1,11 @@
 data/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env/
+.venv/
+.conda/
+*.pth          # checkpoint files – you’ll generate them on the cluster
+out/
+.DS_Store
+onetwothree/

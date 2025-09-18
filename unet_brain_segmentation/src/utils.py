@@ -69,30 +69,36 @@ def load_checkpoint(checkpoint_path, model, optimizer):
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
 def visualize_segmentation(image, true_mask, pred_mask, output_path="results/segmentation.png"):
     """
     Saves a side-by-side visualization of the image, ground truth, and prediction.
-    Args:
-        image (numpy.ndarray): The original input image (H, W).
-        true_mask (numpy.ndarray): The ground truth mask (H, W).
-        pred_mask (numpy.ndarray): The predicted mask (H, W).
-        output_path (str): The path to save the visualization.
     """
     directory = os.path.dirname(output_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+    vis_scaling_factor = 60
+    
+    true_mask_display = true_mask.astype(np.float32)
+    pred_mask_display = pred_mask.astype(np.float32) * vis_scaling_factor
+    
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     
     axes[0].imshow(image, cmap='gray')
     axes[0].set_title('Original MR Image')
     axes[0].axis('off')
     
-    axes[1].imshow(true_mask, cmap='jet', vmin=0, vmax=true_mask.max())
+    # Use the new display-ready variables
+    vmax_val = true_mask_display.max()
+    axes[1].imshow(true_mask_display, cmap='jet', vmin=0, vmax=vmax_val)
     axes[1].set_title('Ground Truth Mask')
     axes[1].axis('off')
     
-    axes[2].imshow(pred_mask, cmap='jet', vmin=0, vmax=true_mask.max())
+    axes[2].imshow(pred_mask_display, cmap='jet', vmin=0, vmax=vmax_val)
     axes[2].set_title('Predicted Segmentation')
     axes[2].axis('off')
     

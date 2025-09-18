@@ -1,3 +1,4 @@
+dataset.py
 import os
 from PIL import Image
 from torch.utils.data import Dataset
@@ -13,6 +14,6 @@ class PNGDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, idx):
-        img = Image.open(self.files[idx]).convert('RGB')
+        img = Image.open(self.files[idx]).convert('L')
         img = self.transform(img)
         return img

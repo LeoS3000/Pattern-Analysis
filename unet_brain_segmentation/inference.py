@@ -1,3 +1,4 @@
+inference.py
 # inference.py
 
 import torch
@@ -32,12 +33,15 @@ def main():
     print("Model loaded successfully.")
 
     # --- Run Inference on Test Images ---
-    test_image_ids = [f.split('.')[0] for f in os.listdir(args.image_dir)]
+    test_image_filenames = sorted([f for f in os.listdir(args.image_dir) if f.startswith('case_')])
     
     # Let's visualize the first 5 images
-    for image_id in test_image_ids[:5]:
-        image_path = os.path.join(args.image_dir, f"{image_id}.png")
-        mask_path = os.path.join(args.mask_dir, f"{image_id}.png")
+    for image_filename in test_image_filenames[:5]:
+        image_path = os.path.join(args.image_dir, image_filename)
+        
+        # --- THIS IS THE CORRECTED LOGIC ---
+        mask_filename = image_filename.replace("case_", "seg_")
+        mask_path = os.path.join(args.mask_dir, mask_filename)
         
         # Load image and mask
         image = Image.open(image_path).convert("L")
@@ -55,7 +59,8 @@ def main():
             pred_mask = torch.argmax(pred_softmax, dim=1).squeeze(0).cpu().numpy()
             
         # Save visualization
-        output_path = os.path.join(args.output_dir, f"segmentation_{image_id}.png")
+        output_filename = image_filename.replace("case_", "segmentation_").replace(".nii", "")
+        output_path = os.path.join(args.output_dir, output_filename)
         visualize_segmentation(image_np, true_mask_np, pred_mask, output_path)
 
 if __name__ == "__main__":

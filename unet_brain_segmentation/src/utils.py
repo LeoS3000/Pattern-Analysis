@@ -54,3 +54,49 @@ def dice_score(pred, target, smooth=1.):
         
     return dice_per_class
 
+def save_checkpoint(state, directory="checkpoints", filename="my_checkpoint.pth.tar"):
+    """Saves model and optimizer state."""
+    print("=> Saving checkpoint")
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    filepath = os.path.join(directory, filename)
+    torch.save(state, filepath)
+
+def load_checkpoint(checkpoint_path, model, optimizer):
+    """Loads model and optimizer state from a checkpoint file."""
+    print("=> Loading checkpoint")
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+
+def visualize_segmentation(image, true_mask, pred_mask, output_path="results/segmentation.png"):
+    """
+    Saves a side-by-side visualization of the image, ground truth, and prediction.
+    Args:
+        image (numpy.ndarray): The original input image (H, W).
+        true_mask (numpy.ndarray): The ground truth mask (H, W).
+        pred_mask (numpy.ndarray): The predicted mask (H, W).
+        output_path (str): The path to save the visualization.
+    """
+    directory = os.path.dirname(output_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    
+    axes[0].imshow(image, cmap='gray')
+    axes[0].set_title('Original MR Image')
+    axes[0].axis('off')
+    
+    axes[1].imshow(true_mask, cmap='jet', vmin=0, vmax=true_mask.max())
+    axes[1].set_title('Ground Truth Mask')
+    axes[1].axis('off')
+    
+    axes[2].imshow(pred_mask, cmap='jet', vmin=0, vmax=true_mask.max())
+    axes[2].set_title('Predicted Segmentation')
+    axes[2].axis('off')
+    
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+    print(f"Visualization saved to {output_path}")

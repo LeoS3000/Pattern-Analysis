@@ -1,3 +1,4 @@
+unet.py
 # --------------------------------------------------------------
 # src/models/unet.py
 # --------------------------------------------------------------
@@ -163,7 +164,10 @@ class Up(nn.Module):
 class OutConv(nn.Module):
     def __init__(self, in_ch: int, out_ch: int):
         super().__init__()
-        self.conv = nn.Conv2d(in_ch, out_ch, kernel_size=1)
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size=1),
+            nn.Tanh()  # <-- ADD THIS ACTIVATION LAYER
+        )
 
     def forward(self, x):
         return self.conv(x)
@@ -186,7 +190,7 @@ class UNet(nn.Module):
         UNet implementation for the assignment.
     """
     def __init__(self,
-                 in_channels: int = 3,
+                 in_channels: int = 1,
                  out_channels: int = 1,
                  base_channels: int = 64,
                  depth: int = 4,

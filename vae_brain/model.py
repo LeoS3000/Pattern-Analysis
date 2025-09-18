@@ -1,4 +1,3 @@
-# model.py
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -21,22 +20,20 @@ class VAE(nn.Module):
             nn.Flatten()
         )
         
-        # Latent space layers
         self.fc_mu = nn.Linear(256 * 8 * 8, latent_dim)
         self.fc_logvar = nn.Linear(256 * 8 * 8, latent_dim)
         
-        # Decoder
         self.decoder_input = nn.Linear(latent_dim, 256 * 8 * 8)
         
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1), # -> 128x16x16
+            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1), # -> 64x32x32
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1), # -> 32x64x64
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1), # -> 1x128x128
-            nn.Sigmoid() # Use Sigmoid for pixel values between 0 and 1
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1),
+            nn.Sigmoid()
         )
 
     def encode(self, x):
@@ -46,7 +43,6 @@ class VAE(nn.Module):
         return mu, log_var
 
     def reparameterize(self, mu, logvar):
-        """The reparameterization trick."""
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         return mu + eps * std
@@ -64,11 +60,6 @@ class VAE(nn.Module):
         return reconstruction, mu, log_var
 
 def vae_loss_function(recon_x, x, mu, logvar):
-    """Calculates VAE loss = Reconstruction Loss + KL Divergence."""
-    # Reconstruction loss (Binary Cross Entropy)
     recon_loss = F.binary_cross_entropy(recon_x, x, reduction='sum')
-    
-    # KL divergence
     kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    
     return recon_loss + kl_div

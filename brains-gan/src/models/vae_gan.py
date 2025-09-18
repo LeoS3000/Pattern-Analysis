@@ -1,3 +1,4 @@
+vae_gan.py
 # --------------------------------------------------------------
 # src/models/vae_gan.py
 # --------------------------------------------------------------
@@ -26,7 +27,7 @@ class VAEGAN(nn.Module):
     """
     def __init__(self,
                  latent_dim: int = 128,
-                 img_channels: int = 3,
+                 img_channels: int = 1,
                  base_channels: int = 64,
                  depth: int = 4,
                  bilinear: bool = True,

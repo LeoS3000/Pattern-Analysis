@@ -5,7 +5,6 @@ __pycache__/
 .env/
 .venv/
 .conda/
-*.pth          # checkpoint files – you’ll generate them on the cluster
+*.pth       
 out/
 .DS_Store
-onetwothree/

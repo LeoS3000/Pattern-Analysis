@@ -1,3 +1,4 @@
+encoder.py
 # --------------------------------------------------------------
 # src/models/encoder.py
 # --------------------------------------------------------------
@@ -16,7 +17,7 @@ class Encoder(nn.Module):
     log‑variance. A global average‑pool collapses the spatial dimensions.
     """
     def __init__(self,
-                 img_channels: int = 3,
+                 img_channels: int = 1,
                  latent_dim: int = 128,
                  base_channels: int = 64,
                  depth: int = 4,

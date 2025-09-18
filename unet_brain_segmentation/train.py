@@ -22,7 +22,7 @@ def train_one_epoch(loader, model, optimizer, loss_fn, scaler, device):
         targets = targets.to(device)
 
         # Forward pass with Automatic Mixed Precision
-        with torch.cuda.amp.autocast():
+        with torch.amp.autocast(device_type='cuda'):
             predictions = model(data)
             loss = loss_fn(predictions, targets)
 
@@ -54,18 +54,12 @@ def validate_model(loader, model, device, num_classes):
     model.train() # Set model back to training mode
     return avg_dsc_per_class
 
-def main():
-    # --- Argument Parsing ---
-    parser = argparse.ArgumentParser(description='Train UNet for Brain Segmentation')
-    parser.add_argument('--epochs', type=int, default=50, help='Number of training epochs')
-    parser.add_argument('--batch-size', type=int, default=8, help='Batch size')
-    parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--num-workers', type=int, default=4, help='Number of workers for DataLoader')
-    parser.add_argument('--num-classes', type=int, default=4, help='Number of segmentation classes (including background)')
-    parser.add_argument('--data-dir', type=str, required=True, help='Path to dataset directory')
-    parser.add_argument('--checkpoint-dir', type=str, default='./checkpoints', help='Path to save models')
-    args = parser.parse_args()
-
+def main(args):
+    if __name__ == "__main__":
+      parser = argparse.ArgumentParser(description='Train UNet for Brain Segmentation')
+      # ... all your parser.add_argument lines ...
+      cli_args = parser.parse_args()
+      main(cli_args)
     # --- Setup ---
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
@@ -74,27 +68,27 @@ def main():
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     # --- Data Loading ---
-# Define the paths based on the new structure
-train_img_dir = os.path.join(args.data_dir, "keras_png_slices_train")
-train_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_train")
-val_img_dir = os.path.join(args.data_dir, "keras_png_slices_validate")
-val_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_validate")
+    # Define the paths based on the new structure
+    train_img_dir = os.path.join(args.data_dir, "keras_png_slices_train")
+    train_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_train")
+    val_img_dir = os.path.join(args.data_dir, "keras_png_slices_validate")
+    val_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_validate")
 
-# Instantiate the datasets for training and validation
-train_dataset = OASISDataset(
-    image_dir=train_img_dir, 
-    mask_dir=train_mask_dir, 
-    num_classes=args.num_classes
-)
-val_dataset = OASISDataset(
-    image_dir=val_img_dir, 
-    mask_dir=val_mask_dir, 
-    num_classes=args.num_classes
-)
+    # Instantiate the datasets for training and validation
+    train_dataset = OASISDataset(
+        image_dir=train_img_dir, 
+        mask_dir=train_mask_dir, 
+        num_classes=args.num_classes
+    )
+    val_dataset = OASISDataset(
+        image_dir=val_img_dir, 
+        mask_dir=val_mask_dir, 
+        num_classes=args.num_classes
+    )
 
-# Create DataLoaders
-train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=False)
+    # Create DataLoaders
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=False)
 
     # --- Model, Loss, Optimizer ---
     model = UNet(n_channels=1, n_classes=args.num_classes).to(device)

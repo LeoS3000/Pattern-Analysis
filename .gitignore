@@ -4,7 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 .env/
 .venv/
-.conda/
-*.pth       
+.conda/     
 out/
 .DS_Store

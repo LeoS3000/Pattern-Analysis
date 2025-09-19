@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 
 class OASISDataset(Dataset):
-    # This __init__ method correctly accepts 'image_dir' and 'mask_dir'
     def __init__(self, image_dir, mask_dir, num_classes, transforms=None):
         """
         Args:
@@ -46,7 +45,7 @@ class OASISDataset(Dataset):
         mask_np[mask_np == 85] = 1
         mask_np[mask_np == 170] = 2
         mask_np[mask_np == 255] = 3
-        mask = mask_np # Now mask contains [0, 1, 2, 3]
+        mask = mask_np
         
         # Apply transformations (augmentation) if any
         if self.transforms:

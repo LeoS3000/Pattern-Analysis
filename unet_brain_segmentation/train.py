@@ -68,7 +68,6 @@ def main(args):
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     # --- Data Loading ---
-    # Define the paths based on the new structure
     train_img_dir = os.path.join(args.data_dir, "keras_png_slices_train")
     train_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_train")
     val_img_dir = os.path.join(args.data_dir, "keras_png_slices_validate")
@@ -90,7 +89,7 @@ def main(args):
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=False)
 
-    # --- Model, Loss, Optimizer ---
+    # Model, Loss, Optimizer 
     model = UNet(n_channels=1, n_classes=args.num_classes).to(device)
     bce_loss = nn.CrossEntropyLoss()
     
@@ -99,8 +98,8 @@ def main(args):
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scaler = torch.cuda.amp.GradScaler()
-    
-    # --- Training Loop ---
+
+    # Training Loop
     best_dsc = 0.0
     for epoch in range(args.epochs):
         print(f"\n--- Epoch {epoch+1}/{args.epochs} ---")
@@ -113,7 +112,7 @@ def main(args):
         print(f"Validation DSC (per class): {[round(s, 4) for s in dsc_scores]}")
         print(f"Average Foreground DSC: {avg_dsc:.4f}")
 
-        # Save model if it's the best one so far
+        # Save model if its the best one so far
         if avg_dsc > best_dsc:
             best_dsc = avg_dsc
             checkpoint = {

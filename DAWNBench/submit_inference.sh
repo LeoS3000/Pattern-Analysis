@@ -19,6 +19,8 @@ echo "Job Name: $SLURM_JOB_NAME"
 echo "Job ID: $SLURM_JOB_ID"
 echo "=========================================================="
 
+PROJECT_DIR=$SLURM_SUBMIT_DIR
+
 # 1. Initialize Conda
 # This is the corrected line:
 source /home/Student/s4979785/miniconda/etc/profile.d/conda.sh
@@ -26,15 +28,20 @@ source /home/Student/s4979785/miniconda/etc/profile.d/conda.sh
 # 2. Activate your Conda environment
 conda activate brains-gan
 
-# 3. Run your Python training script
-# The 'train_cifar10.py' file should be in the same directory you submit from
-python train.py \
-    --epochs 100 \
-    --warmup_epochs 5 \
-    --batch_size 512 \
-    --base_lr 0.1 \
-    --num_workers $SLURM_CPUS_PER_TASK
+# --- Run the Inference Script ---
+# Ensure the checkpoint file from your training job exists
+CHECKPOINT_FILE="resnet18_cifar10.pth"
+
+if [ ! -f ${PROJECT_DIR}"/$CHECKPOINT_FILE" ]; then
+    echo "Error: Checkpoint file '$CHECKPOINT_FILE' not found!"
+    echo "Please run the training job first to create the model file."
+    exit 1
+fi
+
+echo "Running Python inference script on '${PROJECT_DIR}/$CHECKPOINT_FILE'..."
+
+python inference.py --checkpoint "${PROJECT_DIR}/$CHECKPOINT_FILE"
 
 echo "=========================================================="
-echo "Job finished"
+echo "Inference job finished at $(date)"
 echo "=========================================================="

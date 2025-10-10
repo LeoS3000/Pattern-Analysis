@@ -13,6 +13,20 @@ from src.dataset import ProstateNiftiDataset
 from src.model import UNet
 from src.utils import dice_loss, dice_score, save_checkpoint
 
+import torchio as tio
+
+# Define the 3D augmentation pipeline
+transforms = tio.Compose([
+    tio.RandomFlip(axes=('LR',)),          # Randomly flip left-right with a 50% chance
+    tio.RandomAffine(
+        scales=(0.9, 1.2),                 # Randomly scale the image
+        degrees=15,                        # Randomly rotate by up to 15 degrees
+        isotropic=True,
+    ),
+    tio.RandomNoise(std=0.01),             # Add a bit of random noise
+    tio.RandomBlur(std=(0, 1)),            # Apply a random blur
+])
+
 def train_one_epoch(loader, model, optimizer, loss_fn, scaler, device):
     """Runs one full epoch of training."""
     loop = tqdm(loader, leave=True)
@@ -79,12 +93,16 @@ def main(args):
     train_dataset = ProstateNiftiDataset(
         image_dir=train_img_dir,
         mask_dir=train_mask_dir,
-        num_classes=NUM_CLASSES
+        num_classes=NUM_CLASSES,
+        transforms=transforms # <-- Here is where you pass the pipeline
     )
+
+    # Your validation set should typically NOT have augmentations
     val_dataset = ProstateNiftiDataset(
         image_dir=val_img_dir,
         mask_dir=val_mask_dir,
-        num_classes=NUM_CLASSES
+        num_classes=NUM_CLASSES,
+        transforms=None # <-- No augmentations for validation
     )
 
     # Create DataLoaders

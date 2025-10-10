@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 
 # Import your custom modules from the 'src' directory
-from src.dataset import OASISDataset
+from src.dataset import ProstateNiftiDataset
 from src.model import UNet
 from src.utils import dice_loss, dice_score, save_checkpoint
 
@@ -68,21 +68,23 @@ def main(args):
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     # --- Data Loading ---
-    train_img_dir = os.path.join(args.data_dir, "keras_png_slices_train")
-    train_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_train")
-    val_img_dir = os.path.join(args.data_dir, "keras_png_slices_validate")
-    val_mask_dir = os.path.join(args.data_dir, "keras_png_slices_seg_validate")
+    train_img_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_MRs"
+    train_mask_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only"
+    # TODO: You will need to create your own validation split from this data.
+
+    NUM_CLASSES = 6
 
     # Instantiate the datasets for training and validation
-    train_dataset = OASISDataset(
-        image_dir=train_img_dir, 
-        mask_dir=train_mask_dir, 
-        num_classes=args.num_classes
+    # Instantiate the new dataset
+    train_dataset = ProstateNiftiDataset(
+        image_dir=train_img_dir,
+        mask_dir=train_mask_dir,
+        num_classes=NUM_CLASSES
     )
-    val_dataset = OASISDataset(
-        image_dir=val_img_dir, 
-        mask_dir=val_mask_dir, 
-        num_classes=args.num_classes
+    val_dataset = ProstateNiftiDataset(
+        image_dir=val_img_dir,
+        mask_dir=val_mask_dir,
+        num_classes=NUM_CLASSES
     )
 
     # Create DataLoaders

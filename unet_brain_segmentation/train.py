@@ -69,11 +69,6 @@ def validate_model(loader, model, device, num_classes):
     return avg_dsc_per_class
 
 def main(args):
-    if __name__ == "__main__":
-      parser = argparse.ArgumentParser(description='Train UNet for Brain Segmentation')
-      # ... all your parser.add_argument lines ...
-      cli_args = parser.parse_args()
-      main(cli_args)
     # --- Setup ---
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
@@ -116,7 +111,14 @@ def main(args):
     def combined_loss(pred, target):
         return bce_loss(pred, target) + dice_loss(pred, target)
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
+    # Optimizer and LR Scheduler
+    initial_lr = 5e-4
+    optimizer = optim.Adam(model.parameters(), lr=initial_lr)
+    scheduler = optim.lr_scheduler.LambdaLR(
+        optimizer,
+        lr_lambda=lambda epoch: 0.985 ** epoch
+    )
     scaler = torch.cuda.amp.GradScaler()
 
     # Training Loop
@@ -124,6 +126,11 @@ def main(args):
     for epoch in range(args.epochs):
         print(f"\n--- Epoch {epoch+1}/{args.epochs} ---")
         train_one_epoch(train_loader, model, optimizer, combined_loss, scaler, device)
+        
+        # Step the learning rate scheduler
+        scheduler.step()
+        current_lr = scheduler.get_last_lr()[0]
+        print(f"Current learning rate: {current_lr:.6f}")
         
         # Validation
         dsc_scores = validate_model(val_loader, model, device, args.num_classes)
@@ -142,4 +149,15 @@ def main(args):
             save_checkpoint(checkpoint, directory=args.checkpoint_dir, filename="best_model.pth.tar")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Train UNet for Brain Segmentation')
+    # ... all your parser.add_argument lines ...
+    # Example arguments (add your actual arguments as needed):
+    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--num_workers', type=int, default=2)
+    parser.add_argument('--epochs', type=int, default=50)
+    parser.add_argument('--num_classes', type=int, default=6)
+    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
+    # parser.add_argument('--lr', type=float, default=5e-4)  # Not needed, now hardcoded
+    # Add any other arguments you need
+    args = parser.parse_args()
+    main(args)

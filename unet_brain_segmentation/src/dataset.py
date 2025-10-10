@@ -9,11 +9,12 @@ import nibabel as nib
 import torchio as tio # <-- Import TorchIO
 
 class ProstateNiftiDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, num_classes, transforms=None):
+    def __init__(self, image_dir, mask_dir, filenames, num_classes, transforms=None):
         # ... (init function remains exactly the same) ...
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.num_classes = num_classes
+        self.images = filenames
         self.transforms = transforms
         self.images = sorted([f for f in os.listdir(image_dir) if f.endswith(('.nii', '.nii.gz'))])
 

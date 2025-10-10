@@ -8,7 +8,9 @@ import argparse
 import os
 from tqdm import tqdm
 
+
 # Import your custom modules from the 'src' directory
+from sklearn.model_selection import train_test_split
 from src.dataset import ProstateNiftiDataset
 from src.model import UNet
 from src.utils import dice_loss, dice_score, save_checkpoint
@@ -77,27 +79,33 @@ def main(args):
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     # --- Data Loading ---
-    train_img_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_MRs"
-    train_mask_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only"
-    # TODO: You will need to create your own validation split from this data.
+    base_img_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_MRs"
+    base_mask_dir = "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only"
+
+    # Create a validation split
+    all_filenames = sorted([f for f in os.listdir(base_img_dir) if f.endswith(('.nii', '.nii.gz'))])
+    train_files, val_files = train_test_split(
+        all_filenames,
+        test_size=0.2,      # 20% of the data will be for validation
+        random_state=42     # The "seed" for the random shuffle
+    )
 
     NUM_CLASSES = 6
 
-    # Instantiate the datasets for training and validation
-    # Instantiate the new dataset
     train_dataset = ProstateNiftiDataset(
-        image_dir=train_img_dir,
-        mask_dir=train_mask_dir,
+        image_dir=base_img_dir,
+        mask_dir=base_mask_dir,
+        filenames=train_files,  # <-- Pass the list of training files
         num_classes=NUM_CLASSES,
-        transforms=transforms # <-- Here is where you pass the pipeline
+        transforms=transforms
     )
 
-    # Your validation set should typically NOT have augmentations
     val_dataset = ProstateNiftiDataset(
-        image_dir=val_img_dir,
-        mask_dir=val_mask_dir,
+        image_dir=base_img_dir,
+        mask_dir=base_mask_dir,
+        filenames=val_files,    # <-- Pass the list of validation files
         num_classes=NUM_CLASSES,
-        transforms=None # <-- No augmentations for validation
+        transforms=None
     )
 
     # Create DataLoaders

@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 class BasicBlock(nn.Module):
-    """A basic residual block for ResNet."""
     def __init__(self, in_channels, out_channels, stride=1):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -35,8 +34,7 @@ class ResNet18(nn.Module):
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
-        # Note: MaxPool is often removed for CIFAR-10 ResNet variants to preserve resolution
-        
+
         self.layer1 = self._make_layer(BasicBlock, 64, 2, stride=1)
         self.layer2 = self._make_layer(BasicBlock, 128, 2, stride=2)
         self.layer3 = self._make_layer(BasicBlock, 256, 2, stride=2)

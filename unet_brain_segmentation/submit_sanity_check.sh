@@ -22,7 +22,6 @@ PROJECT_DIR=$SLURM_SUBMIT_DIR
 python ${PROJECT_DIR}/train.py \
     --epochs 1 \
     --batch-size 4 \
-    --lr 0.0001 \
     --data-dir /home/groups/comp3710/OASIS \
     --checkpoint-dir ${PROJECT_DIR}/checkpoints_test
 

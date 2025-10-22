@@ -166,6 +166,5 @@ if __name__ == "__main__":
     parser.add_argument('--num_classes', type=int, default=6)
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     # parser.add_argument('--lr', type=float, default=5e-4)  # Not needed, now hardcoded
-    # Add any other arguments you need
     args = parser.parse_args()
     main(args)

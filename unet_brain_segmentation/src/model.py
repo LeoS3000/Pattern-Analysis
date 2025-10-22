@@ -18,7 +18,7 @@ class LocalizationModule3D(nn.Module):
 # ContextModule3D: Pre-activation residual block with InstanceNorm, LeakyReLU, Dropout, skip connection
 class ContextModule3D(nn.Module):
     def __init__(self, n_channels, n_classes):
-        super(UNet3D, self).__init__()
+        super().__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
 

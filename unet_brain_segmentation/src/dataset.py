@@ -6,11 +6,18 @@ import torch.nn.functional as F
 import os
 import numpy as np
 import nibabel as nib
-import torchio as tio # <-- Import TorchIO
+import torchio as tio
 
 class ProstateNiftiDataset(Dataset):
     def __init__(self, image_dir, mask_dir, filenames, num_classes, transforms=None):
-        # ... (init function remains exactly the same) ...
+        """
+        Args:
+            image_dir (str): Base directory with all the 3D Nifti input images.
+            mask_dir (str): Base directory with all the 3D Nifti segmentation masks.
+            filenames (list): A list of filenames to be included in this dataset instance.
+            num_classes (int): Number of classes for one-hot encoding.
+            transforms (callable, optional): Optional 3D transform to be applied on a sample.
+        """
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.num_classes = num_classes

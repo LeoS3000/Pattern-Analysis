@@ -21,9 +21,9 @@ PROJECT_DIR=$SLURM_SUBMIT_DIR
 # 3. Run your training script with SMALLER parameters
 python ${PROJECT_DIR}/train.py \
     --epochs 1 \
-    --batch-size 4 \
-    --data-dir /home/groups/comp3710/HipMRI_Study_open \
-    --checkpoint-dir ${PROJECT_DIR}/checkpoints_test
+    --batch_size 4 \
+    --data_dir /home/groups/comp3710/HipMRI_Study_open \
+    --checkpoint_dir ${PROJECT_DIR}/checkpoints_test
 
 echo "=========================================================="
 echo "Job finished"

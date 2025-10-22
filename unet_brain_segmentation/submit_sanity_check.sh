@@ -3,7 +3,8 @@
 # --- Slurm Job Directives ---
 #SBATCH --job-name=unet3D_sanity_check
 #SBATCH --partition=a100-test          # IMPORTANT: Use the test partition
-#SBATCH --time=00:20:00              # IMPORTANT: Set time limit to 20 mins or less
+#SBATCH --time=00:20:00
+#SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=l.strietzel@student.uq.edu.au
 

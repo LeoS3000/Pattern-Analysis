@@ -70,9 +70,6 @@ def load_checkpoint(checkpoint_path, model, optimizer):
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 def visualize_segmentation(image, true_mask, pred_mask, output_path="results/segmentation.png"):
     """

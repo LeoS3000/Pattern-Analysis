@@ -8,7 +8,7 @@ class LocalizationModule3D(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv3d(out_channels, out_channels // 2, kernel_size=1)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.LeakyReLU(inplace=True)
 
     def forward(self, x):
         x = self.relu(self.conv1(x))

@@ -13,7 +13,7 @@ echo "=========================================================="
 
 # 1. Initialize Conda
 source /home/Student/s4979785/miniconda/etc/profile.d/conda.sh
-conda activate brains-gan
+conda activate brains-gan-new
 
 # 2. Define the project directory
 PROJECT_DIR=$SLURM_SUBMIT_DIR

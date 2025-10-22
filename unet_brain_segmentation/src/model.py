@@ -17,22 +17,29 @@ class LocalizationModule3D(nn.Module):
 
 # ContextModule3D: Pre-activation residual block with InstanceNorm, LeakyReLU, Dropout, skip connection
 class ContextModule3D(nn.Module):
-    def __init__(self, in_channels, out_channels, dropout_p=0.3):
-        super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.norm1 = nn.InstanceNorm3d(in_channels)
-        self.act1 = nn.LeakyReLU(inplace=True)
-        self.conv1 = nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, bias=False)
-        self.dropout = nn.Dropout3d(p=dropout_p)
-        self.norm2 = nn.InstanceNorm3d(out_channels)
-        self.act2 = nn.LeakyReLU(inplace=True)
-        self.conv2 = nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1, bias=False)
-        # If in_channels != out_channels, use a 1x1 conv to match dims for residual
-        if in_channels != out_channels:
-            self.residual_conv = nn.Conv3d(in_channels, out_channels, kernel_size=1)
-        else:
-            self.residual_conv = None
+    def __init__(self, n_channels, n_classes):
+        super(UNet3D, self).__init__()
+        self.n_channels = n_channels
+        self.n_classes = n_classes
+
+        # CORRECTION: Channel counts adjusted to match the paper's architecture
+        self.inc = ContextModule3D(n_channels, 32)  # Paper starts with 16 or 32, we use 32
+        self.down1 = Down3D(32, 64)
+        self.down2 = Down3D(64, 128)
+        self.down3 = Down3D(128, 256)
+        
+        self.up1 = Up3D(256, 128)
+        self.loc1 = LocalizationModule3D(256, 128) # Input is 128 (from up) + 128 (skip) = 256
+        
+        self.up2 = Up3D(128, 64)
+        self.loc2 = LocalizationModule3D(128, 64)  # Input is 64 + 64 = 128
+        self.seg3 = nn.Conv3d(64, n_classes, kernel_size=1) # Deep supervision from this level
+        
+        self.up3 = Up3D(64, 32)
+        self.loc3 = LocalizationModule3D(64, 32)   # Input is 32 + 32 = 64
+        self.seg2 = nn.Conv3d(32, n_classes, kernel_size=1) # Deep supervision from this level
+        
+        self.outc = OutConv3D(16, n_classes) # Final output from 16 channels
 
     def forward(self, x):
         identity = x

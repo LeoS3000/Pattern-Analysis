@@ -31,8 +31,8 @@ class ProstateNiftiDataset(Dataset):
     def __getitem__(self, index):
         image_filename = self.images[index]
         image_path = os.path.join(self.image_dir, image_filename)
-        mask_path = os.path.join(self.mask_dir, image_filename)
-
+        mask_filename = image_filename.replace("_LFOV.nii.gz", "_SEMANTIC.nii.gz")
+        mask_path = os.path.join(self.mask_dir, mask_filename)
         # --- THIS SECTION IS MODIFIED FOR TORCHIO ---
 
         # 1. Create a TorchIO Subject

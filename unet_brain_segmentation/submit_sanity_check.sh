@@ -1,19 +1,14 @@
 #!/bin/bash
 
 # --- Slurm Job Directives ---
-#SBATCH --job-name=unet_sanity_check
+#SBATCH --job-name=unet3D_sanity_check
 #SBATCH --partition=a100-test          # IMPORTANT: Use the test partition
 #SBATCH --time=00:20:00              # IMPORTANT: Set time limit to 20 mins or less
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4            # 4 CPUs should be fine for a smaller batch
-#SBATCH --gres=gpu:1
-#SBATCH --mem=16G                    # 16GB of system RAM is plenty
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=yl.strietzel@student.uq.edu.au
+#SBATCH --mail-user=l.strietzel@student.uq.edu.au
 
 echo "=========================================================="
-echo "Starting UNet Sanity Check"
+echo "Starting UNet3D Sanity Check"
 echo "=========================================================="
 
 # 1. Initialize Conda

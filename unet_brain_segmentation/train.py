@@ -12,7 +12,7 @@ from tqdm import tqdm
 # Import your custom modules from the 'src' directory
 from sklearn.model_selection import train_test_split
 from src.dataset import ProstateNiftiDataset
-from src.model import UNet
+from src.model import UNet3D
 from src.utils import dice_loss, dice_score, save_checkpoint
 
 import torchio as tio
@@ -113,7 +113,7 @@ def main(args):
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True, shuffle=False)
 
     # Model, Loss, Optimizer 
-    model = UNet(n_channels=1, n_classes=args.num_classes).to(device)
+    model = UNet3D(n_channels=1, n_classes=args.num_classes).to(device)
     bce_loss = nn.CrossEntropyLoss()
     
     def combined_loss(pred, target):
@@ -122,7 +122,7 @@ def main(args):
 
     # Optimizer and LR Scheduler
     initial_lr = 5e-4
-    optimizer = optim.Adam(model.parameters(), lr=initial_lr)
+    optimizer = optim.Adam(model.parameters(), lr=initial_lr, weight_decay=1e-5)
     scheduler = optim.lr_scheduler.LambdaLR(
         optimizer,
         lr_lambda=lambda epoch: 0.985 ** epoch

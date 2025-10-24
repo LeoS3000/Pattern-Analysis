@@ -17,8 +17,10 @@ from src.utils import dice_loss, dice_score, save_checkpoint
 
 import torchio as tio
 
+TARGET_SIZE = (128, 128, 128)
 # Define the 3D augmentation pipeline
 transforms = tio.Compose([
+    tio.CropOrPad(TARGET_SIZE, padding_mode=0),
     tio.RandomFlip(axes=('LR',)),          # Randomly flip left-right with a 50% chance
     tio.RandomAffine(
         scales=(0.9, 1.2),                 # Randomly scale the image
@@ -27,6 +29,10 @@ transforms = tio.Compose([
     ),
     tio.RandomNoise(std=0.01),             # Add a bit of random noise
     tio.RandomBlur(std=(0, 1)),            # Apply a random blur
+])
+
+val_transforms = tio.Compose([
+    tio.CropOrPad(TARGET_SIZE, padding_mode=0), # <-- ADD THIS LINE
 ])
 
 def train_one_epoch(loader, model, optimizer, loss_fn, scaler, device):
@@ -105,7 +111,7 @@ def main(args):
         mask_dir=base_mask_dir,
         filenames=val_files,    # <-- Pass the list of validation files
         num_classes=NUM_CLASSES,
-        transforms=None
+        transforms=val_transforms
     )
 
     # Create DataLoaders

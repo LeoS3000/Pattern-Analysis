@@ -127,7 +127,7 @@ def main(args):
 
 
     # Optimizer and LR Scheduler
-    initial_lr = 5e-4
+    initial_lr = 1e-4
     optimizer = optim.Adam(model.parameters(), lr=initial_lr, weight_decay=1e-5)
     scheduler = optim.lr_scheduler.LambdaLR(
         optimizer,

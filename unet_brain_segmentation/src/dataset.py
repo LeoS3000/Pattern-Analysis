@@ -5,61 +5,56 @@ from torch.utils.data import Dataset
 import torch.nn.functional as F
 import os
 import numpy as np
-from PIL import Image
+import nibabel as nib
+import torchio as tio
 
-class OASISDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, num_classes, transforms=None):
+class ProstateNiftiDataset(Dataset):
+    def __init__(self, image_dir, mask_dir, filenames, num_classes, transforms=None):
         """
         Args:
-            image_dir (str): Directory with all the input images.
-            mask_dir (str): Directory with all the segmentation masks.
+            image_dir (str): Base directory with all the 3D Nifti input images.
+            mask_dir (str): Base directory with all the 3D Nifti segmentation masks.
+            filenames (list): A list of filenames to be included in this dataset instance.
             num_classes (int): Number of classes for one-hot encoding.
-            transforms (callable, optional): Optional transform to be applied on a sample.
+            transforms (callable, optional): Optional 3D transform to be applied on a sample.
         """
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.num_classes = num_classes
+        self.images = filenames
         self.transforms = transforms
-        # Get a sorted list of image filenames from the image directory
-        self.images = sorted([f for f in os.listdir(image_dir) if f.startswith('case_')])
+        self.images = sorted([f for f in os.listdir(image_dir) if f.endswith(('.nii', '.nii.gz'))])
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, index):
-        # Get the image filename for the given index
         image_filename = self.images[index]
         image_path = os.path.join(self.image_dir, image_filename)
-        
-        # Generate the corresponding mask filename by replacing the prefix
-        mask_filename = image_filename.replace("case_", "seg_")
+        mask_filename = image_filename.replace("_LFOV.nii.gz", "_SEMANTIC.nii.gz")
         mask_path = os.path.join(self.mask_dir, mask_filename)
-        
-        # Load image and mask using Pillow
-        image = Image.open(image_path).convert("L") # Convert to grayscale
-        mask = Image.open(mask_path)
-        
-        image = np.array(image)
-        mask = np.array(mask)
-        mask_np = np.array(mask)
-        mask_np[mask_np == 85] = 1
-        mask_np[mask_np == 170] = 2
-        mask_np[mask_np == 255] = 3
-        mask = mask_np
-        
-        # Apply transformations (augmentation) if any
-        if self.transforms:
-            augmented = self.transforms(image=image, mask=mask)
-            image = augmented['image']
-            mask = augmented['mask']
-            
-        # Convert to PyTorch Tensors
-        image = torch.from_numpy(image).float().unsqueeze(0) # [H, W] -> [1, H, W]
-        mask = torch.from_numpy(mask).long()
+        # --- THIS SECTION IS MODIFIED FOR TORCHIO ---
 
-        # One-hot encode the mask
-        mask_one_hot = F.one_hot(mask, num_classes=self.num_classes)
-        # Permute from [H, W, C] to the required [C, H, W] format
-        mask_one_hot = mask_one_hot.permute(2, 0, 1).float()
-        
-        return image, mask_one_hot
+        # 1. Create a TorchIO Subject
+        #    We add the affine matrix to ensure transforms are applied correctly in physical space
+        subject = tio.Subject(
+            mri=tio.ScalarImage(image_path),
+            mask=tio.LabelMap(mask_path),
+        )
+
+        # 2. Apply transformations if they exist
+        if self.transforms:
+            subject = self.transforms(subject)
+
+        # 3. Extract the transformed tensors
+        #    TorchIO returns tensors in [C, D, H, W] format already
+        image_tensor = subject.mri.data.float()
+        mask_tensor = subject.mask.data.squeeze(0).long() # Squeeze channel dim and ensure it's Long
+
+        # --- END OF MODIFIED SECTION ---
+
+        # One-Hot Encode the Mask (this now happens *after* augmentation)
+        mask_one_hot = F.one_hot(mask_tensor, num_classes=self.num_classes)
+        mask_one_hot = mask_one_hot.permute(3, 0, 1, 2).float()
+
+        return image_tensor, mask_one_hot
